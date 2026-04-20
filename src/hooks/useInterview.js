@@ -20,18 +20,35 @@ export function useInterview() {
     setLoadingQuestions(true);
     setError(null);
     try {
+      console.log("1. Requesting questions from AI...");
+      
       const qs = await generateQuestions(
         session.role,
         session.domain,
         session.difficulty,
         session.count
       );
-      setQuestions(qs);
+      
+      console.log("2. AI Response Received:", qs);
+
+      // Extract the array whether it is a top-level array or wrapped in an object
+      const questionsArray = Array.isArray(qs) ? qs : (qs.questions || qs.data || []);
+
+      // If the array is still empty, throw a visible error
+      if (!questionsArray || questionsArray.length === 0) {
+        throw new Error("The AI didn't return a valid list of questions. Please try again.");
+      }
+
+      console.log("3. Extracted Array:", questionsArray);
+      setQuestions(questionsArray);
+
     } catch (err) {
+      console.error("Hook caught an error:", err);
       setError(err.message);
     } finally {
       setLoadingQuestions(false);
     }
+  
   }
 
   async function submitAnswer(answer) {
